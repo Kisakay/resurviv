@@ -64,6 +64,7 @@ export interface SiteInfoRes {
     country: string;
     gitRevision: string;
     captchaEnabled: boolean;
+    mapVoting: boolean;
     modes: Array<{
         mapName: string;
         teamMode: TeamMode;

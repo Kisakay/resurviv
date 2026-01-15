@@ -89,6 +89,7 @@ export class ApiServer {
             country: "US",
             gitRevision: GIT_VERSION,
             captchaEnabled: this.captchaEnabled,
+            mapVoting: Config.mapVoting ?? true,
             clientTheme: this.clientTheme,
         };
 

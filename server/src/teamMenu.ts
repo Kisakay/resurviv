@@ -281,8 +281,9 @@ class Room {
         if (!mode || !mode.enabled) {
             return;
         }
-        const activeMode = this.teamMenu.server.voteManager.getActiveMode();
-        const mapName = activeMode.mapName;
+        const mapName = Config.mapVoting
+            ? this.teamMenu.server.voteManager.getActiveMode(mode.teamMode).mapName
+            : mode.mapName;
 
         if (this.data.captchaEnabled) {
             if (!data.turnstileToken) {

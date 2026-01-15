@@ -12,55 +12,96 @@ import { Config } from "../config";
 export class VoteManager {
     private voteCounts = new Map<string, number>();
     private voterRecords = new Map<string, VoteRecord>();
-    private activeMapName: string = "";
-    private activeTeamMode: TeamMode = 1;
+    private activeMapByTeamMode = new Map<TeamMode, string>();
     private currentGameMapName: string = "";
     private currentGameTeamMode: TeamMode = 1;
     private votingOpen: boolean = true;
 
     constructor() {
-        const firstMode = Config.modes[0];
-        if (firstMode) {
-            this.activeMapName = firstMode.mapName;
-            this.activeTeamMode = firstMode.teamMode;
-            this.currentGameMapName = firstMode.mapName;
-            this.currentGameTeamMode = firstMode.teamMode;
+        const enabledModes = this.getEnabledTeamModes();
+        for (const teamMode of enabledModes) {
+            const modeConfig = Config.modes.find(m => m.enabled && m.teamMode === teamMode);
+            const mapName = modeConfig?.mapName || this.getEnabledMode().mapName;
+            this.activeMapByTeamMode.set(teamMode, mapName);
         }
+        const enabledMode = this.getEnabledMode();
+        this.currentGameMapName = enabledMode.mapName;
+        this.currentGameTeamMode = enabledMode.teamMode;
     }
 
-    getActiveMode(): { mapName: string; teamMode: TeamMode } {
+    private getEnabledMode(): { mapName: string; teamMode: TeamMode } {
+        const enabled = Config.modes.find((m) => m.enabled);
+        if (enabled) {
+            return { mapName: enabled.mapName, teamMode: enabled.teamMode };
+        }
+        const first = Config.modes[0];
+        if (first) {
+            return { mapName: first.mapName, teamMode: first.teamMode };
+        }
+        return { mapName: "main", teamMode: 2 };
+    }
+
+    getEnabledTeamModes(): TeamMode[] {
+        const modes = new Set<TeamMode>();
+        for (const mode of Config.modes) {
+            if (mode.enabled) {
+                modes.add(mode.teamMode as TeamMode);
+            }
+        }
+        if (modes.size === 0) {
+            modes.add(this.getEnabledMode().teamMode);
+        }
+        return Array.from(modes).sort((a, b) => a - b);
+    }
+
+    getActiveMode(teamMode?: TeamMode): { mapName: string; teamMode: TeamMode } {
+        if (teamMode !== undefined) {
+            const mapName = this.activeMapByTeamMode.get(teamMode);
+            if (mapName) {
+                return { mapName, teamMode };
+            }
+        }
+        const firstTeamMode = this.getEnabledTeamModes()[0] || 1;
         return {
-            mapName: this.activeMapName,
-            teamMode: this.activeTeamMode,
+            mapName: this.activeMapByTeamMode.get(firstTeamMode) || this.getEnabledMode().mapName,
+            teamMode: firstTeamMode,
         };
     }
 
     getVotingOptions(): VoteOption[] {
         const options: VoteOption[] = [];
-        const seenMaps = new Set<string>();
+        const enabledTeamModes = this.getEnabledTeamModes();
 
         const allowedMaps = Config.allowedVoteMaps && Config.allowedVoteMaps.length > 0
             ? Config.allowedVoteMaps
             : Config.modes.map(m => m.mapName);
 
+        const seenMaps = new Set<string>();
+        const uniqueMaps: string[] = [];
         for (const mapName of allowedMaps) {
-            if (seenMaps.has(mapName)) continue;
-            seenMaps.add(mapName);
+            if (!seenMaps.has(mapName)) {
+                seenMaps.add(mapName);
+                uniqueMaps.push(mapName);
+            }
+        }
 
-            const mapDef = MapDefs[mapName as keyof typeof MapDefs] as MapDef;
-            if (!mapDef) continue;
+        for (const teamMode of enabledTeamModes) {
+            for (const mapName of uniqueMaps) {
+                const mapDef = MapDefs[mapName as keyof typeof MapDefs] as MapDef;
+                if (!mapDef) continue;
 
-            const key = this.getVoteKey(mapName, 1);
-            const voteCount = this.voteCounts.get(key) || 0;
+                const key = this.getVoteKey(mapName, teamMode);
+                const voteCount = this.voteCounts.get(key) || 0;
 
-            options.push({
-                mapName: mapName as keyof typeof MapDefs,
-                teamMode: 1,
-                displayName: mapDef.desc.name || mapName,
-                icon: mapDef.desc.icon,
-                backgroundImg: mapDef.desc.backgroundImg,
-                voteCount,
-            });
+                options.push({
+                    mapName: mapName as keyof typeof MapDefs,
+                    teamMode,
+                    displayName: mapDef.desc.name || mapName,
+                    icon: mapDef.desc.icon,
+                    backgroundImg: mapDef.desc.backgroundImg,
+                    voteCount,
+                });
+            }
         }
 
         return options;
@@ -73,6 +114,7 @@ export class VoteManager {
             votingOpen: this.votingOpen,
             currentGameMapName: this.currentGameMapName,
             currentGameTeamMode: this.currentGameTeamMode,
+            availableTeamModes: this.getEnabledTeamModes(),
             options: this.getVotingOptions(),
             hasVoted: !!voterRecord,
             votedFor: voterRecord
@@ -103,12 +145,14 @@ export class VoteManager {
             : Config.modes.map(m => m.mapName);
 
         const isValidOption = allowedMaps.includes(body.mapName as keyof typeof MapDefs);
+        const enabledTeamModes = this.getEnabledTeamModes();
+        const isValidTeamMode = enabledTeamModes.includes(body.teamMode as TeamMode);
 
-        if (!isValidOption) {
+        if (!isValidOption || !isValidTeamMode) {
             return { success: false, error: "invalid_option" };
         }
 
-        const voteKey = this.getVoteKey(body.mapName, 1);
+        const voteKey = this.getVoteKey(body.mapName, body.teamMode as TeamMode);
         const currentCount = this.voteCounts.get(voteKey) || 0;
         const newCount = currentCount + 1;
         this.voteCounts.set(voteKey, newCount);
@@ -116,18 +160,36 @@ export class VoteManager {
         this.voterRecords.set(ip, {
             ip,
             mapName: body.mapName,
-            teamMode: 1,
+            teamMode: body.teamMode as TeamMode,
             timestamp: Date.now(),
         });
 
         return { success: true, newVoteCount: newCount };
     }
 
+    getWinnerForTeamMode(teamMode: TeamMode): string | null {
+        const options = this.getVotingOptions().filter(o => o.teamMode === teamMode);
+        if (options.length === 0) return null;
+
+        const voteCounts = options.map((o) => o.voteCount);
+        const maxVotes = Math.max(...voteCounts);
+
+        if (maxVotes === 0) {
+            return null;
+        }
+
+        const winners = options.filter((o) => o.voteCount === maxVotes);
+        const winner = winners[Math.floor(Math.random() * winners.length)];
+
+        return winner.mapName;
+    }
+
     getWinner(): { mapName: string; teamMode: TeamMode } | null {
         const options = this.getVotingOptions();
         if (options.length === 0) return null;
 
-        const maxVotes = Math.max(...options.map((o) => o.voteCount));
+        const voteCounts = options.map((o) => o.voteCount);
+        const maxVotes = Math.max(...voteCounts);
 
         if (maxVotes === 0) {
             return null;
@@ -143,17 +205,21 @@ export class VoteManager {
     }
 
     rotateToVotedMode(): { mapName: string; teamMode: TeamMode } {
-        const winner = this.getWinner();
+        const enabledTeamModes = this.getEnabledTeamModes();
         
-        if (winner) {
-            this.activeMapName = winner.mapName;
-            this.activeTeamMode = winner.teamMode;
+        for (const teamMode of enabledTeamModes) {
+            const winnerMap = this.getWinnerForTeamMode(teamMode);
+            if (winnerMap) {
+                this.activeMapByTeamMode.set(teamMode, winnerMap);
+            }
         }
         
         this.voteCounts.clear();
         this.voterRecords.clear();
-        this.currentGameMapName = this.activeMapName;
-        this.currentGameTeamMode = this.activeTeamMode;
+        
+        const firstTeamMode = enabledTeamModes[0] || 1;
+        this.currentGameMapName = this.activeMapByTeamMode.get(firstTeamMode) || this.getEnabledMode().mapName;
+        this.currentGameTeamMode = firstTeamMode;
         this.votingOpen = true;
         
         return this.getActiveMode();

@@ -13,12 +13,12 @@ const BACKPACK_LEVEL = 3;
 util.mergeDeep(Config, {
     clientTheme: "perks",
     modes: [
-        { mapName: "snow", teamMode: TeamMode.Solo, enabled: false },
-        { mapName: "perks", teamMode: TeamMode.Duo, enabled: true },
-        { mapName: "snow", teamMode: TeamMode.Squad, enabled: false },
+        { mapName: "main", teamMode: TeamMode.Solo, enabled: false },
+        { mapName: "main", teamMode: TeamMode.Duo, enabled: true },
+        { mapName: "main", teamMode: TeamMode.Squad, enabled: false },
     ],
-
-    allowedVoteMaps: ["snow", "perks", "desert", "cobalt", "main", "halloween", "potato", "faction"],
+    allowedVoteMaps: ["perks", "snow", "desert", "cobalt", "faction", "halloween", "main"],
+    mapVoting: true,
     debug: {
         spawnMode: process.env.NODE_ENV === "production" ? "default" : "fixed",
     },

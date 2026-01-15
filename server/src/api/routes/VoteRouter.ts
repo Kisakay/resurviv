@@ -17,6 +17,7 @@ VoteRouter.get("/state", (c) => {
             votingOpen: false,
             currentGameMapName: "",
             currentGameTeamMode: 1,
+            availableTeamModes: [],
             options: [],
             hasVoted: false,
         });
@@ -49,6 +50,10 @@ VoteRouter.get("/stats", (c) => {
 });
 
 VoteRouter.get("/active", (c) => {
-    const activeMode = voteManager.getActiveMode();
-    return c.json(activeMode);
+    const enabledTeamModes = voteManager.getEnabledTeamModes();
+    const activeModes: Record<number, { mapName: string; teamMode: number }> = {};
+    for (const teamMode of enabledTeamModes) {
+        activeModes[teamMode] = voteManager.getActiveMode(teamMode);
+    }
+    return c.json(activeModes);
 });

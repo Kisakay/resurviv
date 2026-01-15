@@ -8,11 +8,13 @@ export class VoteMenu {
     modal: MenuModal;
     voteState: VoteStateRes | null = null;
     pollInterval: number | null = null;
+    selectedTeamMode: number | null = null;
 
     container = $("#modal-vote");
     optionsContainer = $("#vote-options-container");
     statusText = $("#vote-status-text");
     closeBtn = $("#vote-close-btn");
+    filterContainer: JQuery<HTMLElement> | null = null;
 
     constructor(public localization: Localization) {
         this.modal = new MenuModal(this.container);
@@ -102,10 +104,67 @@ export class VoteMenu {
             this.statusText.text(this.localization.translate("vote-choose"));
         }
 
-        for (const option of this.voteState.options) {
+        this.renderTeamModeFilter();
+
+        const filteredOptions = this.selectedTeamMode
+            ? this.voteState.options.filter((o) => o.teamMode === this.selectedTeamMode)
+            : this.voteState.options;
+
+        for (const option of filteredOptions) {
             const card = this.createOptionCard(option);
             this.optionsContainer.append(card);
         }
+    }
+
+    renderTeamModeFilter(): void {
+        if (!this.voteState) return;
+
+        const availableModes = this.voteState.availableTeamModes || [];
+        if (availableModes.length <= 1) {
+            if (this.filterContainer) {
+                this.filterContainer.remove();
+                this.filterContainer = null;
+            }
+            return;
+        }
+
+        if (!this.filterContainer) {
+            this.filterContainer = $("<div/>", { class: "vote-filter-container" });
+            this.statusText.after(this.filterContainer);
+        }
+
+        this.filterContainer.empty();
+
+        if (!this.selectedTeamMode) {
+            this.selectedTeamMode = availableModes[0];
+        }
+
+        const label = $("<span/>", {
+            class: "vote-filter-label",
+            text: "Team Mode",
+        });
+
+        const select = $("<select/>", {
+            class: "vote-filter-select",
+        });
+
+        for (const mode of availableModes) {
+            const option = $("<option/>", {
+                value: mode.toString(),
+                text: this.getTeamModeText(mode),
+            });
+            if (mode === this.selectedTeamMode) {
+                option.prop("selected", true);
+            }
+            select.append(option);
+        }
+
+        select.on("change", () => {
+            this.selectedTeamMode = parseInt(select.val() as string, 10);
+            this.renderOptions();
+        });
+
+        this.filterContainer.append(label, select);
     }
 
     createOptionCard(option: VoteOption): JQuery<HTMLElement> {

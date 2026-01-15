@@ -38,6 +38,10 @@ export class SiteInfo {
             this.info = data || {};
             this.loaded = true;
             this.updatePageFromInfo();
+
+            if (!this.info.mapVoting) {
+                $("#btn-vote-map").hide();
+            }
         });
     }
 

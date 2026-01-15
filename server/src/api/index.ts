@@ -153,8 +153,9 @@ app.post("/api/find_game", validateParams(zFindGameBody), async (c) => {
         return c.json<FindGameResponse>({ error: "mode_disabled" }, 400);
     }
     const teamMode = selectedMode.teamMode;
-    const activeMode = server.voteManager.getActiveMode();
-    const mapName = activeMode.mapName;
+    const mapName = Config.mapVoting
+        ? server.voteManager.getActiveMode(teamMode).mapName
+        : selectedMode.mapName;
 
     const data = await server.findGame({
         region: body.region,

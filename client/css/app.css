@@ -7327,6 +7327,35 @@ input [type="image"]:focus {
   background-color: rgba(60, 120, 50, 0.9);
 }
 
+.vote-filter-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.vote-filter-label {
+  color: #fff;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.vote-filter-select {
+  padding: 6px 12px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  background-color: #fff;
+  border: 1px solid #000;
+  border-radius: 4px;
+  color: #000;
+}
+
+.vote-filter-select:focus {
+  outline: 2px solid orange;
+}
+
 @media (max-width: 850px), (max-width: 900px) and (min-resolution: 3dppx) {
   .modal-vote-content {
     width: 95%;

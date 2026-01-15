@@ -135,6 +135,8 @@ export interface ConfigType {
 
     allowedVoteMaps?: Array<keyof typeof MapDefs>;
 
+    mapVoting?: boolean;
+
     /**
      * Game tick rate.
      * Controls how many physics and logic ticks the game will try to process every second, defaults to 100.

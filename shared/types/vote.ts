@@ -22,6 +22,7 @@ export interface VoteStateRes {
     votingOpen: boolean;
     currentGameMapName: string;
     currentGameTeamMode: TeamMode;
+    availableTeamModes: TeamMode[];
     options: VoteOption[];
     hasVoted: boolean;
     votedFor?: {
