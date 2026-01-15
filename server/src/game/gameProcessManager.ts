@@ -4,6 +4,7 @@ import { randomUUID } from "crypto";
 import { type MapDef, MapDefs } from "../../../shared/defs/mapDefs";
 import type { TeamMode } from "../../../shared/gameConfig";
 import * as net from "../../../shared/net/net";
+import { Config } from "../config";
 import { ServerLogger } from "../utils/logger";
 import {
     type FindGamePrivateBody,
@@ -172,6 +173,21 @@ export class GameProcessManager implements GameManager {
 
     readonly logger = new ServerLogger("Game Process Manager");
 
+    async fetchActiveMap(teamMode: TeamMode): Promise<string | null> {
+        try {
+            const response = await fetch(`${Config.gameServer.apiServerUrl}/api/vote/active`);
+            if (!response.ok) {
+                this.logger.warn("Failed to fetch active map from API");
+                return null;
+            }
+            const activeModes = await response.json() as Record<number, { mapName: string; teamMode: number }>;
+            return activeModes[teamMode]?.mapName ?? null;
+        } catch (err) {
+            this.logger.warn("Error fetching active map:", err);
+            return null;
+        }
+    }
+
     constructor() {
         process.on("beforeExit", () => {
             for (const gameProc of this.processes) {
@@ -307,9 +323,12 @@ export class GameProcessManager implements GameManager {
             })[0];
 
         if (!game) {
+            const activeMapName = await this.fetchActiveMap(body.teamMode);
+            const mapName = (activeMapName ?? body.mapName) as keyof typeof MapDefs;
+            
             game = this.newGame({
                 teamMode: body.teamMode,
-                mapName: body.mapName as keyof typeof MapDefs,
+                mapName: mapName,
             });
         }
 
