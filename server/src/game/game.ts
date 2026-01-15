@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import type { MapDefs } from "../../../shared/defs/mapDefs";
-import { GameConfig, TeamMode } from "../../../shared/gameConfig";
+import { GameConfig, GasMode, TeamMode } from "../../../shared/gameConfig";
 import * as net from "../../../shared/net/net";
 import type { Loadout } from "../../../shared/utils/loadout";
 import { math } from "../../../shared/utils/math";
@@ -347,12 +347,14 @@ export class Game {
     }
 
     get canJoin(): boolean {
-        return !this.over;
-        return (
-            this.aliveCount < this.map.mapDef.gameMode.maxPlayers &&
-            !this.over &&
-            this.startedTime < 370
-        );
+        if (this.over) return false;
+        if (this.gas.mode === GasMode.Moving && this.gas.radNew === 0) {
+            const remainingTime = (1 - this.gas.gasT) * this.gas.duration;
+            if (remainingTime <= 5) {
+                return false;
+            }
+        }
+        return true;
     }
 
     deserializeMsg(buff: ArrayBuffer): {
