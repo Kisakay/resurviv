@@ -133,6 +133,8 @@ export interface ConfigType {
      */
     clientTheme: keyof typeof MapDefs;
 
+    allowedVoteMaps?: Array<keyof typeof MapDefs>;
+
     /**
      * Game tick rate.
      * Controls how many physics and logic ticks the game will try to process every second, defaults to 100.

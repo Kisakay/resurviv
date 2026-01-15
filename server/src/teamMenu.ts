@@ -281,6 +281,8 @@ class Room {
         if (!mode || !mode.enabled) {
             return;
         }
+        const activeMode = this.teamMenu.server.voteManager.getActiveMode();
+        const mapName = activeMode.mapName;
 
         if (this.data.captchaEnabled) {
             if (!data.turnstileToken) {
@@ -304,7 +306,7 @@ class Room {
         }
 
         const res = await this.teamMenu.server.findGame({
-            mapName: mode.mapName,
+            mapName: mapName,
             teamMode: mode.teamMode,
             autoFill: this.data.autoFill,
             region: region,

@@ -565,6 +565,18 @@ export class Game {
         this.joinTokens.clear();
         this.updateData();
         this._saveGameToDatabase();
+        this._notifyGameEnded();
+    }
+
+    private async _notifyGameEnded() {
+        try {
+            const res = await apiPrivateRouter.game_ended.$post({});
+            if (!res.ok) {
+                this.logger.warn("Failed to notify API of game end");
+            }
+        } catch (err) {
+            this.logger.error("Error notifying API of game end:", err);
+        }
     }
 
     private async _saveGameToDatabase() {

@@ -35,6 +35,7 @@ import { Pass } from "./ui/pass";
 import { ProfileUi } from "./ui/profileUi";
 import { TeamMenu } from "./ui/teamMenu";
 import { loadStaticDomImages } from "./ui/ui2";
+import { VoteMenu } from "./ui/voteMenu";
 
 class Application {
     nameInput = $("#player-name-input-solo");
@@ -70,6 +71,7 @@ class Application {
 
     siteInfo!: SiteInfo;
     teamMenu!: TeamMenu;
+    voteMenu!: VoteMenu;
 
     pixi: PIXI.Application<PIXI.ICanvas> | null = null;
     resourceManager: ResourceManager | null = null;
@@ -118,6 +120,8 @@ class Application {
             this.onTeamMenuJoinGame.bind(this),
             this.onTeamMenuLeave.bind(this),
         );
+
+        this.voteMenu = new VoteMenu(this.localization);
 
         const onLoadComplete = () => {
             this.config.load(() => {
@@ -227,6 +231,9 @@ class Application {
             });
             $("#btn-create-team").on("click", () => {
                 this.tryJoinTeam(true);
+            });
+            $("#btn-vote-map").on("click", () => {
+                this.voteMenu.show();
             });
             $("#btn-team-mobile-link-join").on("click", () => {
                 let t = $<HTMLInputElement>("#team-link-input").val()?.trim()!;

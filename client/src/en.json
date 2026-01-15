@@ -766,5 +766,14 @@
   "game-xp_compass": "Amélie's True Compass",
   "game-xp_stump": "Ravenstone's Bloody Stump",
   "game-xp_bone": "Bone of Gordon",
-  "game-xp_donut": "Cake Donut"
+  "game-xp_donut": "Cake Donut",
+
+  "index-vote-map": "Vote for Next Map",
+  "vote-choose": "Choose your preferred map/mode:",
+  "vote-loading": "Loading voting options...",
+  "vote-closed": "Voting is currently closed",
+  "vote-submitted": "Your already voted. Mode will be changing next round.",
+  "vote-votes": "votes",
+  "vote-vote": "Vote",
+  "vote-voted": "Voted"
 }

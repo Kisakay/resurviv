@@ -17,6 +17,8 @@ util.mergeDeep(Config, {
         { mapName: "perks", teamMode: TeamMode.Duo, enabled: true },
         { mapName: "snow", teamMode: TeamMode.Squad, enabled: false },
     ],
+
+    allowedVoteMaps: ["snow", "perks", "desert", "cobalt", "main", "halloween", "potato", "faction"],
     debug: {
         spawnMode: process.env.NODE_ENV === "production" ? "default" : "fixed",
     },

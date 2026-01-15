@@ -6,6 +6,7 @@ import { TeamMenu } from "../teamMenu";
 import { GIT_VERSION } from "../utils/gitRevision";
 import { defaultLogger, ServerLogger } from "../utils/logger";
 import type { FindGamePrivateBody, FindGamePrivateRes } from "../utils/types";
+import { voteManager } from "../vote/voteManager";
 
 class Region {
     data: (typeof Config)["regions"][string];
@@ -56,6 +57,7 @@ export class ApiServer {
     readonly logger = new ServerLogger("Server");
 
     teamMenu = new TeamMenu(this);
+    voteManager = voteManager;
 
     regions: Record<string, Region> = {};
 
@@ -67,6 +69,10 @@ export class ApiServer {
     constructor() {
         for (const region in Config.regions) {
             this.regions[region] = new Region(region);
+        }
+        const firstEnabled = this.modes.find((m) => m.enabled);
+        if (firstEnabled) {
+            this.voteManager.onNewRound(firstEnabled.mapName, firstEnabled.teamMode);
         }
     }
 

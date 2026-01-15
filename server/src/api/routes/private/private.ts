@@ -17,6 +17,7 @@ import {
     zSetGameModeBody,
     zUpdateRegionBody,
 } from "../../../utils/types";
+import { voteManager } from "../../../vote/voteManager";
 import type { Context } from "../..";
 import { server } from "../../apiServer";
 import {
@@ -44,6 +45,11 @@ export const PrivateRouter = new Hono<Context>()
 
         server.updateRegion(regionId, data);
         return c.json({}, 200);
+    })
+    .post("/game_ended", (c) => {
+        const newMode = voteManager.rotateToVotedMode();
+        server.logger.info(`Game ended - rotated to: ${newMode.mapName} (mode ${newMode.teamMode})`);
+        return c.json({ newMode }, 200);
     })
     .post("/set_game_mode", validateParams(zSetGameModeBody), (c) => {
         const {

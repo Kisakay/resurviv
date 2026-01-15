@@ -870,6 +870,7 @@
                   <a class="btn-darken menu-option btn-team-option" id="btn-join-team" data-l10n="index-join-team">Join Team</a>
                   <a class="btn-darken menu-option btn-team-option" id="btn-create-team" data-l10n="index-create-team">Create Team</a>
                 </div>
+                <div id="btn-vote-map" class="menu-option btn-darken" data-l10n="index-vote-map">Vote for Next Map</div>
                 <div id="btn-help" class="menu-option btn-darken" data-l10n="index-how-to-play">How to Play</div>
                 <div id="start-help">
                   <h1 data-l10n="index-controls">Controls</h1>
@@ -1408,6 +1409,18 @@
               -->
               <a href="attribution.txt" target="_blank">attributions</a>
             </div>
+          </div>
+        </div>
+      </div>
+      <div id="modal-vote" class="modal modal-vote">
+        <div class="modal-content modal-close modal-vote-content">
+          <div class="modal-header modal-vote-header">
+            <span class="close close-corner" id="vote-close-btn"></span>
+            <h2 data-l10n="index-vote-map">Vote for Next Map</h2>
+          </div>
+          <div class="modal-body modal-vote-body">
+            <p id="vote-status-text" class="vote-status-text" data-l10n="vote-choose">Choose your preferred map/mode:</p>
+            <div id="vote-options-container" class="vote-options-container"></div>
           </div>
         </div>
       </div>

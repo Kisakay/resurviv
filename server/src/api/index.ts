@@ -31,6 +31,7 @@ import { PrivateRouter } from "./routes/private/private";
 import { StatsRouter } from "./routes/stats/StatsRouter";
 import { AuthRouter } from "./routes/user/AuthRouter";
 import { UserRouter } from "./routes/user/UserRouter";
+import { VoteRouter } from "./routes/VoteRouter";
 
 export type Context = {
     Variables: {
@@ -74,6 +75,7 @@ app.use(
 
 app.route("/api/user/", UserRouter);
 app.route("/api/auth/", AuthRouter);
+app.route("/api/vote/", VoteRouter);
 app.route("/api/", StatsRouter);
 app.route("/private/", PrivateRouter);
 
@@ -146,16 +148,19 @@ app.post("/api/find_game", validateParams(zFindGameBody), async (c) => {
         }
     }
 
-    const mode = server.modes[body.gameModeIdx];
-    if (!mode || !mode.enabled) {
-        return c.json<FindGameResponse>({ error: "full" });
+    const selectedMode = server.modes[body.gameModeIdx];
+    if (!selectedMode) {
+        return c.json<FindGameResponse>({ error: "mode_disabled" }, 400);
     }
+    const teamMode = selectedMode.teamMode;
+    const activeMode = server.voteManager.getActiveMode();
+    const mapName = activeMode.mapName;
 
     const data = await server.findGame({
         region: body.region,
         version: body.version,
-        mapName: mode.mapName,
-        teamMode: mode.teamMode,
+        mapName: mapName,
+        teamMode: teamMode,
         autoFill: true,
         playerData: [
             {
