@@ -1,5 +1,6 @@
 import type { Hono } from "hono";
 import type { UpgradeWebSocket } from "hono/ws";
+import type { MapDefs } from "../../../shared/defs/mapDefs";
 import type { SiteInfoRes } from "../../../shared/types/api";
 import { Config } from "../config";
 import { TeamMenu } from "../teamMenu";
@@ -81,8 +82,20 @@ export class ApiServer {
     }
 
     getSiteInfo(): SiteInfoRes {
+        const modes = this.modes.map((mode) => {
+            const activeMode = this.voteManager.getActiveMode(mode.teamMode);
+            return {
+                mapName: activeMode.mapName,
+                teamMode: mode.teamMode,
+                enabled: mode.enabled,
+            };
+        });
+
+        const firstEnabledMode = modes.find((m) => m.enabled);
+        const clientTheme = (firstEnabledMode?.mapName || this.clientTheme) as keyof typeof MapDefs;
+
         const data: SiteInfoRes = {
-            modes: this.modes,
+            modes,
             pops: {},
             youtube: { name: "", link: "" },
             twitch: [],
@@ -90,7 +103,7 @@ export class ApiServer {
             gitRevision: GIT_VERSION,
             captchaEnabled: this.captchaEnabled,
             mapVoting: Config.mapVoting ?? true,
-            clientTheme: this.clientTheme,
+            clientTheme,
         };
 
         for (const region in this.regions) {

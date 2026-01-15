@@ -10,6 +10,7 @@ import type { Localization } from "./ui/localization";
 export class SiteInfo {
     info: SiteInfoRes = {} as SiteInfoRes;
     loaded = false;
+    private onRefreshCallbacks: Array<() => void> = [];
 
     constructor(
         public config: ConfigManager,
@@ -17,6 +18,10 @@ export class SiteInfo {
     ) {
         this.config = config;
         this.localization = localization;
+    }
+
+    onRefresh(callback: () => void) {
+        this.onRefreshCallbacks.push(callback);
     }
 
     load() {
@@ -41,6 +46,19 @@ export class SiteInfo {
 
             if (!this.info.mapVoting) {
                 $("#btn-vote-map").hide();
+            }
+        });
+    }
+
+    refresh() {
+        const locale = this.localization.getLocale();
+        const siteInfoUrl = api.resolveUrl(`/api/site_info?language=${locale}`);
+
+        $.ajax(siteInfoUrl).done((data, _status) => {
+            this.info = data || {};
+            this.updatePageFromInfo();
+            for (const callback of this.onRefreshCallbacks) {
+                callback();
             }
         });
     }
@@ -72,6 +90,8 @@ export class SiteInfo {
                 const style = getGameModeStyles[i];
                 const selector = `index-play-${style.buttonText}`;
                 const btn = $(`#btn-start-mode-${i}`);
+                btn.removeClass("btn-custom-mode-no-indent btn-custom-mode-main");
+                btn.attr("class", btn.attr("class")?.replace(/btn-darken-\S+/g, "") || "");
                 btn.data("l10n", selector);
                 btn.html(this.localization.translate(selector));
                 if (style.icon || style.buttonCss) {
@@ -84,6 +104,10 @@ export class SiteInfo {
                     btn.css({
                         "background-image": `url(${style.icon})`,
                     });
+                } else {
+                    btn.css({
+                        "background-image": "",
+                    });
                 }
                 const l = $(`#btn-team-queue-mode-${i}`);
                 if (l.length) {
@@ -94,6 +118,10 @@ export class SiteInfo {
                         l.addClass("btn-custom-mode-select");
                         l.css({
                             "background-image": `url(${style.icon})`,
+                        });
+                    } else {
+                        l.css({
+                            "background-image": "",
                         });
                     }
                 }

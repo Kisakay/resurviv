@@ -1171,7 +1171,8 @@ a:active {
 
 #team-menu {
   display: none;
-  height: 325px;
+  height: 400px;
+  max-height: 400px;
   padding: 12px;
   position: relative;
   width: 625px;
@@ -7318,13 +7319,13 @@ input [type="image"]:focus {
 }
 
 #btn-vote-map {
-  background-color: rgba(45, 90, 39, 0.8);
-  border: 2px solid #7cfc00;
-  transition: background-color 0.2s;
+  background-color: rgba(0, 0, 0, 0.35);
+  border: 2px solid #0f0;
 }
 
-#btn-vote-map:hover {
-  background-color: rgba(60, 120, 50, 0.9);
+#btn-team-vote-map {
+  background-color: rgba(0, 0, 0, 0.35);
+  border: 2px solid #0f0;
 }
 
 .vote-filter-container {

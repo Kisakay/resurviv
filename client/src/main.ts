@@ -122,6 +122,13 @@ class Application {
         );
 
         this.voteMenu = new VoteMenu(this.localization);
+        this.teamMenu.setVoteMenu(this.voteMenu);
+
+        this.siteInfo.onRefresh(() => {
+            if (this.teamMenu.active) {
+                this.teamMenu.refreshUi();
+            }
+        });
 
         const onLoadComplete = () => {
             this.config.load(() => {
@@ -424,6 +431,7 @@ class Application {
         // confusing, so we'll hide the modal instead.
         if (active) {
             this.errorModal.hide();
+            this.siteInfo.refresh();
         }
     }
 

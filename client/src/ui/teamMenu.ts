@@ -18,6 +18,7 @@ import type { PingTest } from "../pingTest";
 import { SDK } from "../sdk";
 import type { SiteInfo } from "../siteInfo";
 import type { Localization } from "./localization";
+import type { VoteMenu } from "./voteMenu";
 
 function errorTypeToString(type: string, localization: Localization) {
     const typeMap = {
@@ -41,6 +42,7 @@ function errorTypeToString(type: string, localization: Localization) {
 export class TeamMenu {
     // Jquery elems
     playBtn = $("#btn-start-team");
+    teamVoteBtn = $("#btn-team-vote-map");
     serverWarning = $("#server-warning");
     teamOptions = $(
         "#btn-team-queue-mode-1, #btn-team-queue-mode-2, #btn-team-fill-auto, #btn-team-fill-none",
@@ -76,6 +78,7 @@ export class TeamMenu {
     displayedInvalidProtocolModal = false;
 
     hideUrl!: boolean;
+    voteMenu: VoteMenu | null = null;
 
     constructor(
         public config: ConfigManager,
@@ -108,6 +111,11 @@ export class TeamMenu {
             SDK.requestMidGameAd(() => {
                 this.tryStartGame();
             });
+        });
+        this.teamVoteBtn.on("click", () => {
+            if (this.voteMenu) {
+                this.voteMenu.show();
+            }
         });
         $("#team-copy-url, #team-desc-text").on("click", (e) => {
             const t = $("<div/>", {
@@ -168,6 +176,10 @@ export class TeamMenu {
                 this.sendMessage("keepAlive", {});
             }
         }, 10 * 1000);
+    }
+
+    setVoteMenu(voteMenu: VoteMenu) {
+        this.voteMenu = voteMenu;
     }
 
     getPlayerById(playerId: number) {
@@ -513,6 +525,9 @@ export class TeamMenu {
                     "background-image": "",
                 });
             }
+
+            this.teamVoteBtn.css("display", this.siteInfo.info.mapVoting ? "block" : "none");
+
             let playersInGame = false;
             for (let i = 0; i < this.players.length; i++) {
                 playersInGame = playersInGame || this.players[i].inGame;
